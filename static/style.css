@@ -1,0 +1,204 @@
+/* Reset + fullscreen */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  color: #1a1a1a;
+}
+
+#map {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+/* ---- Login overlay ---- */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #1f2937, #111827);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.card {
+  background: #fff;
+  padding: 28px 32px;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  min-width: 300px;
+  max-width: 90vw;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.card h1 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.card .subtitle {
+  margin: -8px 0 8px 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.card label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.card input[type="text"] {
+  padding: 10px 12px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  outline: none;
+}
+.card input[type="text"]:focus {
+  border-color: #2563eb;
+}
+
+.card input[type="color"] {
+  width: 60px;
+  height: 40px;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+  padding: 2px;
+  cursor: pointer;
+  background: #fff;
+}
+
+.card button {
+  margin-top: 8px;
+  padding: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.card button:hover { background: #1d4ed8; }
+.card button:disabled { background: #9ca3af; cursor: not-allowed; }
+
+.error {
+  color: #b91c1c;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* ---- Ranking panel ---- */
+.panel {
+  position: absolute;
+  top: 12px;
+  z-index: 500;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(6px);
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
+  max-width: 280px;
+  font-size: 0.92rem;
+}
+
+.panel-left  { left: 12px; }
+.panel-right { right: 12px; }
+
+.panel h2 {
+  margin: 0 0 8px 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111;
+}
+
+.panel ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.panel li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+.panel li:last-child { border-bottom: none; }
+
+.panel li.you {
+  font-weight: 700;
+}
+
+.swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.count {
+  color: #555;
+  font-variant-numeric: tabular-nums;
+}
+
+.panel li.offline {
+  opacity: 0.5;
+}
+
+.my-name {
+  margin: 0 0 6px 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  color: #555;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.my-score {
+  margin: 0;
+  font-size: 2.4rem;
+  font-weight: 800;
+  text-align: center;
+  line-height: 1;
+}
+
+.my-score-label {
+  margin: 4px 0 0 0;
+  font-size: 0.75rem;
+  color: #888;
+  text-align: center;
+}
+
+.conn {
+  margin: 8px 0 0 0;
+  font-size: 0.75rem;
+  color: #888;
+}
+
+/* Mobile: rankings mais pequenos */
+@media (max-width: 500px) {
+  .panel { min-width: 130px; max-width: 42vw; font-size: 0.8rem; }
+  .panel h2 { font-size: 0.85rem; }
+}

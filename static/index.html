@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>TurfWar Lisboa</title>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+  <!-- Login overlay -->
+  <div id="login" class="overlay">
+    <form id="loginForm" class="card">
+      <h1>TurfWar Lisboa</h1>
+      <p class="subtitle">Pinta a cidade. Rouba o que for de outros.</p>
+
+      <label>
+        Nome
+        <input id="nameInput" type="text" maxlength="20" required autocomplete="off" placeholder="O teu nome" />
+      </label>
+
+      <label>
+        Cor
+        <input id="colorInput" type="color" value="#ff3366" required />
+      </label>
+
+      <button type="submit">Entrar</button>
+      <p id="loginError" class="error" hidden></p>
+    </form>
+  </div>
+
+  <!-- Mapa + UI -->
+  <div id="map"></div>
+
+  <aside id="ranking" class="panel panel-left" hidden>
+    <h2>Ranking</h2>
+    <ol id="rankingList"></ol>
+    <p id="connStatus" class="conn">a ligar…</p>
+  </aside>
+
+  <aside id="rankingRight" class="panel panel-right" hidden>
+    <p id="myName" class="my-name"></p>
+    <p id="myScore" class="my-score">0</p>
+    <p class="my-score-label">células</p>
+  </aside>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>
