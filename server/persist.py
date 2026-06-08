@@ -33,6 +33,8 @@ CREATE TABLE IF NOT EXISTS cells (
 
 
 def open_db(path: str | Path) -> sqlite3.Connection:
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(str(path), check_same_thread=False)
     conn.execute("PRAGMA journal_mode=WAL")   # mais resistente a crashes
     conn.execute("PRAGMA synchronous=NORMAL") # boa velocidade + seguro
