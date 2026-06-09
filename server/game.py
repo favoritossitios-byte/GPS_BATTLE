@@ -28,6 +28,7 @@ LISBON_BBOX = {"south": 38.60, "north": 39.00, "west": -9.45, "east": -8.93}
 MAX_ACCURACY_M = 50.0   # acc pior que isto = ignorar
 MAX_JUMP_M = 100.0      # salto > 100m em < 2s = ignorar
 JUMP_WINDOW_S = 2.0
+MAX_HISTORY_AGE_S = 3600.0  # histórico offline — pings com mais de 1h são ignorados
 
 
 @dataclass
@@ -136,17 +137,26 @@ class GameState:
         return b["south"] <= lat <= b["north"] and b["west"] <= lon <= b["east"]
 
     async def paint(
-        self, pid: str, lat: float, lon: float, acc: float
+        self, pid: str, lat: float, lon: float, acc: float, ts: float | None = None
     ) -> tuple[list[tuple[int, int, str]], dict[str, int]] | None:
         """Aplica um ping de GPS. Devolve (changes, counts_atualizados) ou None
         se o ping foi descartado.
 
         `changes` é a lista de células efetivamente alteradas (incluindo capturas):
             [(row, col, new_owner_id), ...]
+
+        `ts` é o timestamp Unix (segundos) do ping — pode vir do histórico offline.
+        Pings com mais de MAX_HISTORY_AGE_S são ignorados.
         """
         if acc is None or acc > MAX_ACCURACY_M:
             return None
         if not self._is_in_lisbon(lat, lon):
+            return None
+
+        now = time.time()
+        ping_ts = ts if (ts is not None and ts > 0) else now
+        # Rejeitar pings demasiado antigos
+        if now - ping_ts > MAX_HISTORY_AGE_S:
             return None
 
         async with self._lock:
@@ -154,14 +164,13 @@ class GameState:
             if p is None:
                 return None
 
-            now = time.time()
-            # Detetar teleportes
-            if p.last_pos is not None and (now - p.last_pos_t) < JUMP_WINDOW_S:
+            # Detetar teleportes — usar timestamps dos próprios pings
+            if p.last_pos is not None and (ping_ts - p.last_pos_t) < JUMP_WINDOW_S:
                 if _haversine_m(p.last_pos, (lat, lon)) > MAX_JUMP_M:
                     return None
 
             p.last_pos = (lat, lon)
-            p.last_pos_t = now
+            p.last_pos_t = ping_ts
             p.last_seen = now
 
             here = cell_of(lat, lon)

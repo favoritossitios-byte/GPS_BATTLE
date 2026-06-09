@@ -95,23 +95,43 @@ async def ws_endpoint(
                 msg = json.loads(raw)
             except json.JSONDecodeError:
                 continue
-            if msg.get("type") != "pos":
-                continue
-            try:
-                lat = float(msg["lat"]); lon = float(msg["lon"])
-                acc = float(msg.get("acc", 9999))
-            except (KeyError, TypeError, ValueError):
+
+            msg_type = msg.get("type")
+
+            if msg_type == "pos":
+                pings = [msg]
+            elif msg_type == "batch":
+                pings = msg.get("pings", [])
+                if not isinstance(pings, list):
+                    continue
+            else:
                 continue
 
-            result = await state.paint(player.id, lat, lon, acc)
-            if result is None:
-                continue
-            changes, counts = result
-            await manager.broadcast({
-                "type": "paint",
-                "changes": changes,
-                "counts": counts,
-            })
+            # Processar pings em ordem cronológica
+            pings.sort(key=lambda m: m.get("ts", 0))
+
+            all_changes: list = []
+            last_counts: dict | None = None
+            for ping in pings:
+                try:
+                    lat = float(ping["lat"]); lon = float(ping["lon"])
+                    acc = float(ping.get("acc", 9999))
+                    ts = float(ping["ts"]) if "ts" in ping else None
+                except (KeyError, TypeError, ValueError):
+                    continue
+                result = await state.paint(player.id, lat, lon, acc, ts)
+                if result is None:
+                    continue
+                changes, counts = result
+                all_changes.extend(changes)
+                last_counts = counts
+
+            if all_changes and last_counts is not None:
+                await manager.broadcast({
+                    "type": "paint",
+                    "changes": all_changes,
+                    "counts": last_counts,
+                })
     except WebSocketDisconnect:
         pass
     except Exception:

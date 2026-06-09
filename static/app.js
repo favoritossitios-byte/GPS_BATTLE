@@ -16,6 +16,10 @@
   const LAT_STEP = 2.0 / 111320.0;
   const LON_STEP = 2.0 / 86900.0;
 
+  // Histórico offline: máx. 1 hora de pings guardados localmente
+  const OFFLINE_MAX_AGE_MS = 3600 * 1000;
+  const OFFLINE_MAX_PINGS = 3600; // ~1/s durante 1h
+
   // ---------- Cor aleatória ----------
   function randomColor() {
     // Gera matiz aleatório, saturação e luminosidade fixas para cores vivas
@@ -160,6 +164,18 @@
 
   // ---------- WebSocket ----------
   let ws, wsReady = false;
+  // Fila de posições offline: pings guardados quando WS não está pronto
+  let offlineQueue = [];
+
+  function flushOfflineQueue() {
+    if (!wsReady || offlineQueue.length === 0) return;
+    const now = Date.now();
+    // Descartar pings mais antigos que 1 hora
+    offlineQueue = offlineQueue.filter(p => now - p.ts * 1000 <= OFFLINE_MAX_AGE_MS);
+    if (offlineQueue.length === 0) return;
+    ws.send(JSON.stringify({ type: "batch", pings: offlineQueue }));
+    offlineQueue = [];
+  }
 
   function connect(name, color) {
     const proto = location.protocol === "https:" ? "wss:" : "ws:";
@@ -172,10 +188,16 @@
     ws.addEventListener("open", () => {
       wsReady = true;
       connStatus.textContent = "ligado";
+      flushOfflineQueue();
     });
     ws.addEventListener("close", () => {
       wsReady = false;
       connStatus.textContent = "ligação perdida";
+      // Tentar reconectar após 3s
+      setTimeout(() => connect(
+        JSON.parse(localStorage.getItem("turfwar.profile") || "{}").name || "",
+        JSON.parse(localStorage.getItem("turfwar.profile") || "{}").color || myColor
+      ), 3000);
     });
     ws.addEventListener("error", () => {
       connStatus.textContent = "erro de ligação";
@@ -227,7 +249,7 @@
 
   // ---------- Geolocation ----------
   let lastSentAt = 0;
-  const SEND_MIN_INTERVAL = 1000; // 1 ping/s para o servidor
+  const SEND_MIN_INTERVAL = 1000; // 1 ping/s
 
   function startGeolocation() {
     if (!("geolocation" in navigator)) {
@@ -252,16 +274,26 @@
         }
 
         const now = Date.now();
-        if (wsReady && now - lastSentAt >= SEND_MIN_INTERVAL) {
-          lastSentAt = now;
-          ws.send(
-            JSON.stringify({
-              type: "pos",
-              lat: latitude,
-              lon: longitude,
-              acc: accuracy,
-            })
-          );
+        if (now - lastSentAt < SEND_MIN_INTERVAL) return;
+        lastSentAt = now;
+
+        const ping = {
+          type: "pos",
+          lat: latitude,
+          lon: longitude,
+          acc: accuracy,
+          ts: Math.floor(now / 1000),
+        };
+
+        if (wsReady) {
+          ws.send(JSON.stringify(ping));
+        } else {
+          // Guardar na fila offline (máx. 1h de histórico)
+          offlineQueue.push(ping);
+          const cutoff = now - OFFLINE_MAX_AGE_MS;
+          if (offlineQueue.length > OFFLINE_MAX_PINGS) {
+            offlineQueue = offlineQueue.filter(p => p.ts * 1000 >= cutoff);
+          }
         }
       },
       (err) => {

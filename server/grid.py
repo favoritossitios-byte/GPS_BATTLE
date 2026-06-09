@@ -12,7 +12,7 @@ CELL_SIZE_M = 2.0
 LAT_STEP = CELL_SIZE_M / 111_320.0
 LON_STEP = CELL_SIZE_M / 86_900.0
 
-PAINT_RADIUS_M = 5.0  # raio de pintura por ping (precisão GPS típica)
+PAINT_RADIUS_M = 20.0  # raio de pintura por ping
 
 Cell = tuple[int, int]  # (row, col) = (lat_idx, lon_idx)
 
